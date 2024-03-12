@@ -1,1 +1,1 @@
-This exercise can be passed simply by doing git verify
+This exercise can be passed simply by doing `git verify`.

@@ -10,6 +10,13 @@ main(){
 
     print_menu
     read -p "Choose any option: " choice 
+
+    if [[ !($choice =~ ^[-+]?[0-9]+$) ]]
+    then
+        printf "Please enter an integer!\n"
+        continue
+    fi 
+
     clear
 
     if [ $choice -eq 1 ]
@@ -28,11 +35,26 @@ main(){
 
         printf  "Which key do you want to use: "
         read idx
+        if [[ !($idx =~ ^-?[0-9]+$) ]]
+        then
+            printf "Invalid index!\n"
+            continue
+        fi
+        
+        n_keys=$(gpg $flags | grep "sec" | wc -l)
 
+        if (( idx > n_keys || idx < 1 ));
+        then
+            printf "Invalid key!\n"
+            continue
+        fi
+        
         key_id=$(gpg $flags | awk '$1 ~ /sec/ {print $2}' | awk -F "/" '{print $2}' | sed -n "${idx}p")
         git config --global user.signingkey $key_id
         git config --global commit.gpgsign true
         printf "\nKey set to $key_id!\n" 
+        printf "Associated public key is:\n";
+        gpg --armor --export $key_id;
     
     elif [ $choice -eq 4 ]
     then
@@ -41,6 +63,20 @@ main(){
 
         printf "Which key do you want to remove: "
         read idx
+        
+        if [[ !($idx =~ ^-?[0-9]+$) ]]
+        then
+            printf "Invalid index!\n"
+            continue
+        fi
+
+        n_keys=$(gpg $flags | grep "sec" | wc -l)
+
+        if (( idx > n_keys || idx < 1 ));
+        then
+            printf "Invalid key!\n"
+            continue
+        fi
         
         key_id=$(gpg $flags | awk '$1 ~ /sec/ {print $2}' | awk -F "/" '{print $2}' | sed -n "${idx}p")
         gpg --delete-secret-key $key_id
